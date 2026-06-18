@@ -48,6 +48,7 @@ build:
 			"$$@"; \
 		fi; \
 	}; \
+	xcodebuild -resolvePackageDependencies; \
 	for dest in $(DESTINATIONS); do \
 		platform_name=`echo "$$dest" | sed -n 's/.*platform=\([^,]*\).*/\1/p'`; \
 		if [ -z "$$platform_name" ]; then platform_name="iOS"; fi; \
