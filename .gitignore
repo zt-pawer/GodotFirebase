@@ -3,7 +3,7 @@
 .xcodebuild/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
-.swiftpm/xcode/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
 
 # Build artifacts
 dist/

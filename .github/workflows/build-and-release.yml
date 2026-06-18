@@ -273,7 +273,6 @@ jobs:
             file="$(basename "$stub")"
             base="${file%%.*}"
             case "$base" in
-              godot_firebase_core_stub)      addon="GodotFirebaseCore" ;;
               godot_firebase_auth_stub)      addon="GodotFirebaseAuth" ;;
               godot_firebase_app_check_stub) addon="GodotFirebaseAppCheck" ;;
               *) echo "Unknown stub: $file" >&2; return 1 ;;
@@ -297,7 +296,7 @@ jobs:
             awk -F'"' '/Developer ID Application/ { print $2; exit }'
           )
           test -n "$SIGNING_IDENTITY"
-          find addons/GodotFirebaseCore addons/GodotFirebaseAuth addons/GodotFirebaseAppCheck \
+          find addons/GodotFirebaseAuth addons/GodotFirebaseAppCheck \
             -path '*/bin/*.framework' -type d -print | sort | while read -r fw; do
             codesign --keychain "$KEYCHAIN_PATH" --force --options runtime --timestamp \
               --sign "$SIGNING_IDENTITY" "$fw"
@@ -309,7 +308,7 @@ jobs:
           set -euo pipefail
           PACKAGE_NAME="GodotFirebase-addons-${GITHUB_SHA}.zip"
           rm -rf dist && mkdir -p dist/addons
-          for MODULE in GodotFirebaseCore GodotFirebaseAuth GodotFirebaseAppCheck; do
+          for MODULE in GodotFirebaseAuth GodotFirebaseAppCheck; do
             test -d "addons/$MODULE"
             ditto "addons/$MODULE" "dist/addons/$MODULE"
           done

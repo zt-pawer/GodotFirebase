@@ -49,6 +49,7 @@ build:
 			"$$@"; \
 		fi; \
 	}; \
+	swift build; \
 	for dest in $(DESTINATIONS); do \
 		platform_name=`echo "$$dest" | sed -n 's/.*platform=\([^,]*\).*/\1/p'`; \
 		if [ -z "$$platform_name" ]; then platform_name="iOS"; fi; \
@@ -61,6 +62,7 @@ build:
 			echo "Building $$module for $$dest"; \
 			run_xcodebuild $(XCODEBUILD) \
 				$(XCODEBUILD_FLAGS) \
+				-workspace '$(WORKSPACE)' \
 				-scheme "$$module" \
 				-configuration '$(CONFIG)' \
 				-destination "$$dest" \
