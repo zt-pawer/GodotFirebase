@@ -1,58 +1,187 @@
-# Godot Firebase
+# GodotFirebase
 
-# BIG NOTE: IF YOU HAVE DOWNLOADED THIS MANUALLY BEFORE, YOU WILL NEED TO UPDATE YOUR REPO. I RECOMMEND BLOWING IT AWAY AND REDOWNLOADING, BUT NOTICE THAT 4.X IS THE NEW MAIN BRANCH, AND 3.X IS ITS OWN, SEPARATE BRANCH NOW.
-# You can also follow these steps:
+Native Firebase plugin for Godot 4 on iOS and macOS, built with Swift and [SwiftGodotRuntime](https://github.com/migueldeicaza/SwiftGodot).
 
-git branch -m 4.x main
+Download a ready-to-use build from the [GitHub Releases](https://github.com/zt-pawer/GodotFirebase/releases) tab. Drag the `addons/GodotFirebase/` folder into your project's `addons/` directory, alongside [GodotApplePlugins](https://github.com/migueldeicaza/GodotApplePlugins) (required as the shared runtime).
 
-git fetch origin
+---
 
-git branch -u origin/main main
+## Requirements
 
-git remote set-head origin -a
+- iOS 17.0 / macOS 14.0
+- Godot 4.2+
+- [GodotApplePlugins](https://github.com/migueldeicaza/GodotApplePlugins) installed — provides the shared `SwiftGodotRuntime` the plugin links against
 
+The plugin also ships empty stubs for Linux and Windows so your project compiles without errors on those platforms.
 
-# END BIG NOTE!
+---
 
-A Google Firebase SDK written in GDScript for use in Godot Engine projects.
+## Installation
 
-## :speech_balloon: Discord
+1. Download the latest release zip from [Releases](https://github.com/zt-pawer/GodotFirebase/releases)
+2. Unzip and copy `addons/GodotFirebase/` into your Godot project's `addons/`
+3. Ensure `addons/GodotApplePluginsRuntime/` is also present (from GodotApplePlugins)
+4. Add `GoogleService-Info.plist` to your iOS export resources
 
-https://discord.gg/xXKYN2ZxDB
+---
 
-godotnuts@gmail.com
+## API
 
-## :coffee: Contributors
+All classes are guarded with `ClassDB.class_exists("ClassName")` — they only exist on iOS/macOS. On other platforms the guard simply skips instantiation.
 
-The following individuals and many more have contributed significantly to this project. If you would like to support this project's further development, consider supporting them.
+### `GodotFirebase`
 
-- [Kyle Szklenski](https://github.com/WolfgangSenff) (creator - original, Authentication, Database, Firestore, Functions, Storage) ([buy me a coffee](https://ko-fi.com/kyleszklenski) or [join me on patreon!](https://patreon.com/KyleSzklenski))
-- [Chuck Lindblom](https://github.com/BearDooks) (creator - several features across the board)
+Configures the Firebase app. Call `configure()` once before any other Firebase API.
 
-## :arrow_down:  Cloning
-SSH:
+```gdscript
+if ClassDB.class_exists("GodotFirebase"):
+    var firebase = ClassDB.instantiate("GodotFirebase")
+    firebase.configure()
+```
+
+| Method | Description |
+|--------|-------------|
+| `configure()` | Initialises Firebase from `GoogleService-Info.plist` |
+| `isConfigured() -> bool` | Returns true if already configured |
+
+---
+
+### `GodotFirebaseAuth`
+
+Firebase Authentication — anonymous, custom token, provider linking and ID token retrieval.
+
+```gdscript
+if ClassDB.class_exists("GodotFirebaseAuth"):
+    var auth = ClassDB.instantiate("GodotFirebaseAuth")
+    auth.custom_token_sign_in_success.connect(_on_token_success)
+    auth.signInWithCustomToken(my_token)
+```
+
+**Signals**
+
+| Signal | Arguments | Description |
+|--------|-----------|-------------|
+| `sign_in_success` | `uid: String` | Any sign-in succeeded |
+| `sign_in_failed` | `error: String` | Any sign-in failed |
+| `sign_out_success` | — | Sign-out succeeded |
+| `sign_out_failed` | `error: String` | Sign-out failed |
+| `link_success` | `uid: String` | Provider linked |
+| `link_failed` | `error: String` | Link failed (check for `"already-linked"` / `"credential-already-in-use"`) |
+| `custom_token_sign_in_success` | `uid: String` | Custom token sign-in succeeded |
+| `custom_token_sign_in_failed` | `error: String` | Custom token sign-in failed |
+| `id_token_success` | `token: String` | ID token retrieved |
+| `id_token_failed` | `error: String` | ID token retrieval failed |
+
+**Methods**
+
+| Method | Description |
+|--------|-------------|
+| `signInAnonymously()` | Sign in as anonymous user |
+| `signOut()` | Sign out current user |
+| `isUserSignedIn() -> bool` | Whether a user is currently signed in |
+| `getCurrentUserUid() -> String` | UID of current user or `""` |
+| `signInWithCustomToken(customToken: String)` | Sign in with backend-issued custom token |
+| `getIdToken(forceRefresh: Bool)` | Get Firebase ID token for the current user |
+| `signInWithGameCenter()` | Sign in using Game Center credential |
+| `linkWithGameCenter()` | Link Game Center to current Firebase user |
+| `signInWithApple(idToken: String, rawNonce: String)` | Sign in with Apple |
+| `linkWithApple(idToken: String, rawNonce: String)` | Link Apple to current Firebase user |
+| `signInWithGoogle(idToken: String, accessToken: String)` | Sign in with Google |
+| `linkWithGoogle(idToken: String, accessToken: String)` | Link Google |
+| `signInWithFacebook(accessToken: String)` | Sign in with Facebook |
+| `linkWithFacebook(accessToken: String)` | Link Facebook |
+
+---
+
+### `GodotFirebaseAppCheck`
+
+Firebase App Check — device integrity attestation.
+
+```gdscript
+if ClassDB.class_exists("GodotFirebaseAppCheck"):
+    var app_check = ClassDB.instantiate("GodotFirebaseAppCheck")
+    app_check.token_success.connect(_on_token)
+    app_check.configureAppCheck("appattest")
+    app_check.getAppCheckToken(false)
+```
+
+**Signals**
+
+| Signal | Arguments | Description |
+|--------|-----------|-------------|
+| `token_success` | `token: String` | Token retrieved |
+| `token_failed` | `error: String` | Token retrieval failed |
+
+**Methods**
+
+| Method | Description |
+|--------|-------------|
+| `configureAppCheck(providerType: String)` | Configure before `GodotFirebase.configure()`. Values: `"debug"`, `"devicecheck"`, `"appattest"` |
+| `getAppCheckToken(forceRefresh: Bool)` | Request current App Check token |
+
+---
+
+## Building from Source
+
+The plugin requires a macOS machine with Xcode to build the Swift xcframework. The CI workflow (`build-and-release.yml`) does this automatically on push using a self-hosted macOS runner.
+
+### CI (recommended)
+
+1. Set up a self-hosted macOS Actions runner on your machine (same runner as used by GodotApplePlugins)
+2. Add these secrets to the repo if you want code-signed + notarised releases:
+   - `MACOS_CERTIFICATE`, `MACOS_CERTIFICATE_PASSWORD`, `KEYCHAIN_PASSWORD`
+   - `APPLE_ID`, `APPLE_ID_PASSWORD`, `APPLE_TEAM_ID`
+3. Push to `main` — the workflow builds iOS/macOS xcframework + Linux/Windows stubs, then publishes a release zip
+
+### Local build
+
 ```bash
-git clone git@github.com:GodotNuts/GodotFirebase.git
+# 1. Resolve packages
+swift build
+
+# 2. Build for each destination (Release config)
+DERIVED=".xcodebuild"
+WORKSPACE=".swiftpm/xcode/package.xcworkspace"
+SCHEME="GodotFirebase"
+
+xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release \
+  -destination "generic/platform=iOS" -derivedDataPath "$DERIVED" build
+
+xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release \
+  -destination "generic/platform=iOS Simulator" -derivedDataPath "${DERIVED}simulator" build
+
+xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release \
+  -destination "platform=macOS,arch=arm64" -derivedDataPath "${DERIVED}arm64" build
+
+# x86_64 — run via Rosetta on Apple Silicon:
+arch -x86_64 xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release \
+  -destination "platform=macOS,arch=x86_64" -derivedDataPath "${DERIVED}x86_64" build
+
+# 3. Assemble xcframework
+mkdir -p addons/GodotFirebase/bin
+xcodebuild -create-xcframework \
+  -framework "$DERIVED/Build/Products/Release-iphoneos/PackageFrameworks/GodotFirebase.framework" \
+  -framework "${DERIVED}simulator/Build/Products/Release-iphonesimulator/PackageFrameworks/GodotFirebase.framework" \
+  -output addons/GodotFirebase/bin/GodotFirebase.xcframework
+
+# Copy macOS frameworks
+rsync -a "${DERIVED}arm64/Build/Products/Release/PackageFrameworks/GodotFirebase.framework/" \
+  addons/GodotFirebase/bin/GodotFirebase.framework
+
+rsync -a "${DERIVED}x86_64/Build/Products/Release/PackageFrameworks/GodotFirebase.framework/" \
+  addons/GodotFirebase/bin/GodotFirebase_x64.framework
 ```
 
-HTTPS:
-```
-git clone https://github.com/GodotNuts/GodotFirebase.git
-```
+After building, copy `addons/GodotFirebase/` into your Godot project and remove the old `firebase.gdextension`/`libGodotFirebase.dylib` if migrating from SwiftGodotIosPlugins.
 
-## :question: How to Use
+---
 
-The best place to find any and all questions on how to install, activate, and use this plugin is [through the wiki](https://github.com/GodotNuts/GodotFirebase/wiki).
+## SwiftGodot Version
 
-## :bug: Reporting an Issue
+This plugin is pinned to SwiftGodot revision `f528ba67accbe3cca06c1d401c8f9d7c17022f63` — the same revision as [GodotApplePlugins](https://github.com/migueldeicaza/GodotApplePlugins). Both must stay in sync to share the `SwiftGodotRuntime.xcframework` without ABI skew.
 
-Please make sure to read [these guidelines](https://github.com/GodotNuts/GodotFirebase/wiki/Contributing#issues) before submitting an issue. This helps us all figure out what the problem is and how to solve it.
+---
 
-## :computer: Making Contributions
+## License
 
-Contributions are always welcome. Please feel free to fork this repo and follow [these guidelines](https://github.com/GodotNuts/GodotFirebase/wiki/Contributing)
-
-## :memo:  License
-
-This plugin falls under the [MIT License](https://github.com/GodotNuts/GodotFirebase/blob/main/LICENSE)
-
+MIT — see [LICENSE](LICENSE)
