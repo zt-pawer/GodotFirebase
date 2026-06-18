@@ -14,11 +14,22 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
     @Signal var id_token_success: SignalWithArguments<String>
     @Signal var id_token_failed: SignalWithArguments<String>
 
-    private let service = FirebaseAuthService()
+    private let authService = FirebaseAuthService()
+    private let firebaseService = FirebaseService.shared
+
+    @Callable
+    func configure() {
+        firebaseService.configure()
+    }
+
+    @Callable
+    func isConfigured() -> Bool {
+        return firebaseService.isConfigured()
+    }
 
     @Callable
     func signInAnonymously() {
-        service.signInAnonymously { [weak self] result in
+        authService.signInAnonymously { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 switch result {
@@ -31,7 +42,7 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
 
     @Callable
     func signOut() {
-        service.signOut { [weak self] error in
+        authService.signOut { [weak self] error in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 if let error = error {
@@ -45,17 +56,17 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
 
     @Callable
     func isUserSignedIn() -> Bool {
-        return service.isUserSignedIn()
+        return authService.isUserSignedIn()
     }
 
     @Callable
     func getCurrentUserUid() -> String {
-        return service.getCurrentUserUid()
+        return authService.getCurrentUserUid()
     }
 
     @Callable
     func signInWithCustomToken(customToken: String) {
-        service.signInWithCustomToken(customToken) { [weak self] result in
+        authService.signInWithCustomToken(customToken) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 switch result {
@@ -68,7 +79,7 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
 
     @Callable
     func getIdToken(forceRefresh: Bool) {
-        service.getIdToken(forceRefresh: forceRefresh) { [weak self] result in
+        authService.getIdToken(forceRefresh: forceRefresh) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 switch result {
@@ -81,7 +92,7 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
 
     @Callable
     func signInWithGameCenter() {
-        service.signInWithGameCenter { [weak self] result in
+        authService.signInWithGameCenter { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 switch result {
@@ -94,7 +105,7 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
 
     @Callable
     func linkWithGameCenter() {
-        service.linkWithGameCenter { [weak self] result in
+        authService.linkWithGameCenter { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 switch result {
@@ -107,7 +118,7 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
 
     @Callable
     func signInWithApple(idToken: String, rawNonce: String) {
-        service.signInWithApple(idToken: idToken, rawNonce: rawNonce) { [weak self] result in
+        authService.signInWithApple(idToken: idToken, rawNonce: rawNonce) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 switch result {
@@ -120,7 +131,7 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
 
     @Callable
     func linkWithApple(idToken: String, rawNonce: String) {
-        service.linkWithApple(idToken: idToken, rawNonce: rawNonce) { [weak self] result in
+        authService.linkWithApple(idToken: idToken, rawNonce: rawNonce) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 switch result {
@@ -133,7 +144,7 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
 
     @Callable
     func signInWithGoogle(idToken: String, accessToken: String) {
-        service.signInWithGoogle(idToken: idToken, accessToken: accessToken) { [weak self] result in
+        authService.signInWithGoogle(idToken: idToken, accessToken: accessToken) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 switch result {
@@ -146,7 +157,7 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
 
     @Callable
     func linkWithGoogle(idToken: String, accessToken: String) {
-        service.linkWithGoogle(idToken: idToken, accessToken: accessToken) { [weak self] result in
+        authService.linkWithGoogle(idToken: idToken, accessToken: accessToken) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 switch result {
@@ -159,7 +170,7 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
 
     @Callable
     func signInWithFacebook(accessToken: String) {
-        service.signInWithFacebook(accessToken: accessToken) { [weak self] result in
+        authService.signInWithFacebook(accessToken: accessToken) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 switch result {
@@ -172,7 +183,7 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
 
     @Callable
     func linkWithFacebook(accessToken: String) {
-        service.linkWithFacebook(accessToken: accessToken) { [weak self] result in
+        authService.linkWithFacebook(accessToken: accessToken) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 switch result {
