@@ -2,7 +2,7 @@ import Foundation
 import SwiftGodotRuntime
 
 @Godot
-class GodotFirebaseAppCheck: RefCounted {
+class GodotFirebaseAppCheck: RefCounted, @unchecked Sendable {
     @Signal var token_success: SignalWithArguments<String>
     @Signal var token_failed: SignalWithArguments<String>
 

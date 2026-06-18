@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9.1
+// swift-tools-version: 6.2
 
 import PackageDescription
 
@@ -14,15 +14,18 @@ let linkerSettings: [LinkerSetting] = [
     .unsafeFlags(["-Xlinker", "-dead_strip"])
 ]
 
+let runtimeDependency: Target.Dependency = .product(
+    name: "SwiftGodotRuntime",
+    package: "SwiftGodot"
+)
+
 let package = Package(
     name: "GodotFirebase",
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
-        .library(
-            name: "GodotFirebase",
-            type: .dynamic,
-            targets: ["GodotFirebase"]
-        ),
+        .library(name: "GodotFirebaseCore", type: .dynamic, targets: ["GodotFirebaseCore"]),
+        .library(name: "GodotFirebaseAuth", type: .dynamic, targets: ["GodotFirebaseAuth"]),
+        .library(name: "GodotFirebaseAppCheck", type: .dynamic, targets: ["GodotFirebaseAppCheck"]),
     ],
     dependencies: [
         .package(url: "https://github.com/migueldeicaza/SwiftGodot", revision: "f528ba67accbe3cca06c1d401c8f9d7c17022f63"),
@@ -30,10 +33,27 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "GodotFirebase",
+            name: "GodotFirebaseCore",
             dependencies: [
-                .product(name: "SwiftGodotRuntime", package: "SwiftGodot"),
+                runtimeDependency,
+                .product(name: "FirebaseCore", package: "firebase-ios-sdk"),
+            ],
+            swiftSettings: swiftSettings,
+            linkerSettings: linkerSettings
+        ),
+        .target(
+            name: "GodotFirebaseAuth",
+            dependencies: [
+                runtimeDependency,
                 .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
+            ],
+            swiftSettings: swiftSettings,
+            linkerSettings: linkerSettings
+        ),
+        .target(
+            name: "GodotFirebaseAppCheck",
+            dependencies: [
+                runtimeDependency,
                 .product(name: "FirebaseAppCheck", package: "firebase-ios-sdk"),
             ],
             swiftSettings: swiftSettings,
@@ -41,7 +61,7 @@ let package = Package(
         ),
         .testTarget(
             name: "GodotFirebaseTests",
-            dependencies: ["GodotFirebase"]
+            dependencies: ["GodotFirebaseAuth"]
         ),
     ]
 )

@@ -2,7 +2,7 @@ import Foundation
 import SwiftGodotRuntime
 
 @Godot
-class GodotFirebaseAuth: RefCounted {
+class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
     @Signal var sign_in_success: SignalWithArguments<String>
     @Signal var sign_in_failed: SignalWithArguments<String>
     @Signal var sign_out_success: SimpleSignal
@@ -51,6 +51,58 @@ class GodotFirebaseAuth: RefCounted {
     @Callable
     func getCurrentUserUid() -> String {
         return service.getCurrentUserUid()
+    }
+
+    @Callable
+    func signInWithCustomToken(customToken: String) {
+        service.signInWithCustomToken(customToken) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                switch result {
+                case .success(let uid): self.custom_token_sign_in_success.emit(uid)
+                case .failure(let error): self.custom_token_sign_in_failed.emit(error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    @Callable
+    func getIdToken(forceRefresh: Bool) {
+        service.getIdToken(forceRefresh: forceRefresh) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                switch result {
+                case .success(let token): self.id_token_success.emit(token)
+                case .failure(let error): self.id_token_failed.emit(error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    @Callable
+    func signInWithGameCenter() {
+        service.signInWithGameCenter { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                switch result {
+                case .success(let uid): self.sign_in_success.emit(uid)
+                case .failure(let error): self.sign_in_failed.emit(error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    @Callable
+    func linkWithGameCenter() {
+        service.linkWithGameCenter { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                switch result {
+                case .success(let uid): self.link_success.emit(uid)
+                case .failure(let error): self.link_failed.emit(error.localizedDescription)
+                }
+            }
+        }
     }
 
     @Callable
@@ -126,58 +178,6 @@ class GodotFirebaseAuth: RefCounted {
                 switch result {
                 case .success(let uid): self.link_success.emit(uid)
                 case .failure(let error): self.link_failed.emit(error.localizedDescription)
-                }
-            }
-        }
-    }
-
-    @Callable
-    func signInWithGameCenter() {
-        service.signInWithGameCenter { [weak self] result in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                switch result {
-                case .success(let uid): self.sign_in_success.emit(uid)
-                case .failure(let error): self.sign_in_failed.emit(error.localizedDescription)
-                }
-            }
-        }
-    }
-
-    @Callable
-    func linkWithGameCenter() {
-        service.linkWithGameCenter { [weak self] result in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                switch result {
-                case .success(let uid): self.link_success.emit(uid)
-                case .failure(let error): self.link_failed.emit(error.localizedDescription)
-                }
-            }
-        }
-    }
-
-    @Callable
-    func signInWithCustomToken(customToken: String) {
-        service.signInWithCustomToken(customToken) { [weak self] result in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                switch result {
-                case .success(let uid): self.custom_token_sign_in_success.emit(uid)
-                case .failure(let error): self.custom_token_sign_in_failed.emit(error.localizedDescription)
-                }
-            }
-        }
-    }
-
-    @Callable
-    func getIdToken(forceRefresh: Bool) {
-        service.getIdToken(forceRefresh: forceRefresh) { [weak self] result in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                switch result {
-                case .success(let token): self.id_token_success.emit(token)
-                case .failure(let error): self.id_token_failed.emit(error.localizedDescription)
                 }
             }
         }

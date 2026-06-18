@@ -17,18 +17,21 @@ jobs:
             https://raw.githubusercontent.com/migueldeicaza/SwiftGodot/f528ba67accbe3cca06c1d401c8f9d7c17022f63/Sources/GDExtension/include/gdextension_interface.h \
             -o .tmp/gdextension/gdextension_interface.h
 
-      - name: Build Linux x64 stub
+      - name: Build Linux x64 stubs
         run: |
           mkdir -p dist
-          cc -std=c11 -Wall -Wextra -shared -fPIC \
-            -I .tmp/gdextension \
-            Generated/GodotFirebaseStub/godot_firebase_stub.c \
-            -o dist/godot_firebase_stub.linux.x86_64.so
+          for src in Generated/GodotFirebase*Stub/*_stub.c; do
+            case "$(basename "$src")" in ._*) continue ;; esac
+            base="$(basename "${src%.c}")"
+            cc -std=c11 -Wall -Wextra -shared -fPIC \
+              -I .tmp/gdextension "$src" \
+              -o "dist/${base}.linux.x86_64.so"
+          done
 
-      - name: Upload Linux x64 stub
+      - name: Upload Linux x64 stubs
         uses: actions/upload-artifact@v4
         with:
-          name: godot-firebase-stub-linux-x64
+          name: godot-firebase-stubs-linux-x64
           path: dist/*.so
           if-no-files-found: error
 
@@ -45,18 +48,21 @@ jobs:
             https://raw.githubusercontent.com/migueldeicaza/SwiftGodot/f528ba67accbe3cca06c1d401c8f9d7c17022f63/Sources/GDExtension/include/gdextension_interface.h \
             -o .tmp/gdextension/gdextension_interface.h
 
-      - name: Build Linux ARM64 stub
+      - name: Build Linux ARM64 stubs
         run: |
           mkdir -p dist
-          cc -std=c11 -Wall -Wextra -shared -fPIC \
-            -I .tmp/gdextension \
-            Generated/GodotFirebaseStub/godot_firebase_stub.c \
-            -o dist/godot_firebase_stub.linux.arm64.so
+          for src in Generated/GodotFirebase*Stub/*_stub.c; do
+            case "$(basename "$src")" in ._*) continue ;; esac
+            base="$(basename "${src%.c}")"
+            cc -std=c11 -Wall -Wextra -shared -fPIC \
+              -I .tmp/gdextension "$src" \
+              -o "dist/${base}.linux.arm64.so"
+          done
 
-      - name: Upload Linux ARM64 stub
+      - name: Upload Linux ARM64 stubs
         uses: actions/upload-artifact@v4
         with:
-          name: godot-firebase-stub-linux-arm64
+          name: godot-firebase-stubs-linux-arm64
           path: dist/*.so
           if-no-files-found: error
 
@@ -73,7 +79,7 @@ jobs:
             -Uri "https://raw.githubusercontent.com/migueldeicaza/SwiftGodot/f528ba67accbe3cca06c1d401c8f9d7c17022f63/Sources/GDExtension/include/gdextension_interface.h" `
             -OutFile ".tmp/gdextension/gdextension_interface.h"
 
-      - name: Build Windows x64 stub
+      - name: Build Windows x64 stubs
         shell: cmd
         run: |
           if not exist dist mkdir dist
@@ -81,12 +87,18 @@ jobs:
           for /f "usebackq delims=" %%i in (`"%VSWHERE%" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -find Common7\Tools\VsDevCmd.bat`) do set "VSDEVCMD=%%i"
           if not defined VSDEVCMD exit /b 1
           call "%VSDEVCMD%" -arch=x64
-          cl /std:c11 /W4 /LD /I .tmp\gdextension Generated\GodotFirebaseStub\godot_firebase_stub.c /link /OUT:dist\godot_firebase_stub.windows.x86_64.dll
+          for /r Generated %%s in (*_stub.c) do (
+            echo %%~nxs | findstr /b /c:"._" >nul
+            if errorlevel 1 (
+              cl /std:c11 /W4 /LD /I .tmp\gdextension "%%s" /link /OUT:"dist\%%~ns.windows.x86_64.dll"
+              if errorlevel 1 exit /b 1
+            )
+          )
 
-      - name: Upload Windows x64 stub
+      - name: Upload Windows x64 stubs
         uses: actions/upload-artifact@v4
         with:
-          name: godot-firebase-stub-windows-x64
+          name: godot-firebase-stubs-windows-x64
           path: dist/*.dll
           if-no-files-found: error
 
@@ -103,7 +115,7 @@ jobs:
             -Uri "https://raw.githubusercontent.com/migueldeicaza/SwiftGodot/f528ba67accbe3cca06c1d401c8f9d7c17022f63/Sources/GDExtension/include/gdextension_interface.h" `
             -OutFile ".tmp/gdextension/gdextension_interface.h"
 
-      - name: Build Windows ARM64 stub
+      - name: Build Windows ARM64 stubs
         shell: cmd
         run: |
           if not exist dist mkdir dist
@@ -111,12 +123,18 @@ jobs:
           for /f "usebackq delims=" %%i in (`"%VSWHERE%" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.ARM64 -find Common7\Tools\VsDevCmd.bat`) do set "VSDEVCMD=%%i"
           if not defined VSDEVCMD exit /b 1
           call "%VSDEVCMD%" -arch=arm64 -host_arch=x64
-          cl /std:c11 /W4 /LD /I .tmp\gdextension Generated\GodotFirebaseStub\godot_firebase_stub.c /link /OUT:dist\godot_firebase_stub.windows.arm64.dll
+          for /r Generated %%s in (*_stub.c) do (
+            echo %%~nxs | findstr /b /c:"._" >nul
+            if errorlevel 1 (
+              cl /std:c11 /W4 /LD /I .tmp\gdextension "%%s" /link /OUT:"dist\%%~ns.windows.arm64.dll"
+              if errorlevel 1 exit /b 1
+            )
+          )
 
-      - name: Upload Windows ARM64 stub
+      - name: Upload Windows ARM64 stubs
         uses: actions/upload-artifact@v4
         with:
-          name: godot-firebase-stub-windows-arm64
+          name: godot-firebase-stubs-windows-arm64
           path: dist/*.dll
           if-no-files-found: error
 
@@ -129,7 +147,7 @@ jobs:
     runs-on:
       - self-hosted
       - macos
-    timeout-minutes: 120
+    timeout-minutes: 180
     permissions:
       contents: write
     env:
@@ -168,7 +186,10 @@ jobs:
         run: |
           set -euo pipefail
           KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
-          LOGIN_KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
+          DEFAULT_KEYCHAIN_PATH=""
+          if security default-keychain -d user >/tmp/default-keychain-path 2>/dev/null; then
+            DEFAULT_KEYCHAIN_PATH=$(tr -d '"' </tmp/default-keychain-path)
+          fi
           ORIGINAL_KEYCHAINS=""
           while IFS= read -r kc; do
             kc="$(echo "${kc//\"/}" | xargs)"
@@ -187,109 +208,80 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           {
             echo "KEYCHAIN_PATH=$KEYCHAIN_PATH"
+            echo "DEFAULT_KEYCHAIN_PATH=$DEFAULT_KEYCHAIN_PATH"
             echo "ORIGINAL_KEYCHAINS=$ORIGINAL_KEYCHAINS"
           } >> "$GITHUB_ENV"
 
-      - name: Build xcframework (iOS + macOS)
+      - name: Build frameworks (iOS + macOS arm64)
         env:
-          XCODEBUILD_SETTINGS: CODE_SIGNING_ALLOWED=NO OTHER_LDFLAGS=-Wl,-headerpad_max_install_names
+          XCODEBUILD_LOG_ON_ERROR: 1
+          XCODEBUILD_LOG_DIR: ${{ runner.temp }}
         run: |
-          set -euo pipefail
-          DERIVED_DATA="$(pwd)/.xcodebuild"
-          WORKSPACE=".swiftpm/xcode/package.xcworkspace"
-          CONFIG="Release"
-          SCHEME="GodotFirebase"
+          caffeinate -dimsu make build \
+            DESTINATIONS="generic/platform=iOS generic/platform=iOS\ Simulator platform=macOS,arch=arm64"
 
-          build_dest() {
-            local dest="$1"
-            local suffix="$2"
-            caffeinate -dimsu xcodebuild \
-              -workspace "$WORKSPACE" \
-              -scheme "$SCHEME" \
-              -configuration "$CONFIG" \
-              -destination "$dest" \
-              -derivedDataPath "${DERIVED_DATA}${suffix}" \
-              $XCODEBUILD_SETTINGS \
-              build
-          }
-
-          build_dest "generic/platform=iOS" ""
-          build_dest "generic/platform=iOS Simulator" "simulator"
-          build_dest "platform=macOS,arch=arm64" "arm64"
-
+      - name: Build frameworks (macOS x86_64)
+        env:
+          XCODEBUILD_LOG_ON_ERROR: 1
+          XCODEBUILD_LOG_DIR: ${{ runner.temp }}
+        run: |
+          x86_xcodebuild="xcodebuild"
           if [ "$(uname -m)" = "arm64" ]; then
-            arch -x86_64 caffeinate -dimsu xcodebuild \
-              -workspace "$WORKSPACE" \
-              -scheme "$SCHEME" \
-              -configuration "$CONFIG" \
-              -destination "platform=macOS,arch=x86_64" \
-              -derivedDataPath "${DERIVED_DATA}x86_64" \
-              $XCODEBUILD_SETTINGS \
-              build
-          else
-            build_dest "platform=macOS,arch=x86_64" "x86_64"
-          fi
-
-      - name: Package xcframework and macOS frameworks
-        run: |
-          set -euo pipefail
-          DERIVED_DATA="$(pwd)/.xcodebuild"
-          CONFIG="Release"
-          ADDON_BIN="addons/GodotFirebase/bin"
-          mkdir -p "$ADDON_BIN"
-
-          rm -rf "$ADDON_BIN/GodotFirebase.xcframework" \
-                 "$ADDON_BIN/GodotFirebase.framework" \
-                 "$ADDON_BIN/GodotFirebase_x64.framework"
-
-          xcodebuild -create-xcframework \
-            -framework "${DERIVED_DATA}/Build/Products/${CONFIG}-iphoneos/PackageFrameworks/GodotFirebase.framework" \
-            -framework "${DERIVED_DATA}simulator/Build/Products/${CONFIG}-iphonesimulator/PackageFrameworks/GodotFirebase.framework" \
-            -output "$ADDON_BIN/GodotFirebase.xcframework"
-
-          rsync -a \
-            "${DERIVED_DATA}arm64/Build/Products/${CONFIG}/PackageFrameworks/GodotFirebase.framework/" \
-            "$ADDON_BIN/GodotFirebase.framework"
-
-          rsync -a \
-            "${DERIVED_DATA}x86_64/Build/Products/${CONFIG}/PackageFrameworks/GodotFirebase.framework/" \
-            "$ADDON_BIN/GodotFirebase_x64.framework"
-
-          # Fix install names and rpaths so the frameworks find SwiftGodotRuntime
-          RUNTIME_RPATH="@loader_path/../../../../../GodotApplePluginsRuntime/bin"
-          RUNTIME_FRAMEWORK_RPATH="@loader_path/../../../GodotApplePluginsRuntime/bin"
-          fix_rpath() {
-            local binary="$1"
-            local old_rpath="$2"
-            local runtime_framework="$3"
-            install_name_tool -add_rpath "$RUNTIME_RPATH" "$binary" 2>/dev/null || true
-            install_name_tool -add_rpath "$RUNTIME_FRAMEWORK_RPATH" "$binary" 2>/dev/null || true
-            if otool -l "$binary" | grep -Fq "path $old_rpath "; then
-              install_name_tool -delete_rpath "$old_rpath" "$binary" 2>/dev/null || true
+            if ! arch -x86_64 /usr/bin/true 2>/dev/null; then
+              echo "Rosetta is required to build macOS x86_64 on this arm64 runner" >&2
+              exit 1
             fi
-          }
-          fix_rpath \
-            "$ADDON_BIN/GodotFirebase.framework/Versions/A/GodotFirebase" \
-            "${DERIVED_DATA}arm64/Build/Products/${CONFIG}/PackageFrameworks" \
-            "SwiftGodotRuntime.framework"
-          fix_rpath \
-            "$ADDON_BIN/GodotFirebase_x64.framework/Versions/A/GodotFirebase" \
-            "${DERIVED_DATA}x86_64/Build/Products/${CONFIG}/PackageFrameworks" \
-            "SwiftGodotRuntime_x64.framework"
+            x86_xcodebuild="arch -x86_64 xcodebuild"
+          fi
+          caffeinate -dimsu make build \
+            DESTINATIONS="platform=macOS,arch=x86_64" \
+            XCODEBUILD="$x86_xcodebuild"
 
-      - name: Download stubs
+      - name: Assemble addons
+        run: caffeinate -dimsu make dist
+
+      - name: Download Linux x64 stubs
         uses: actions/download-artifact@v4
         with:
-          pattern: godot-firebase-stub-*
-          path: ${{ runner.temp }}/stubs
-          merge-multiple: true
+          name: godot-firebase-stubs-linux-x64
+          path: ${{ runner.temp }}/stubs/linux-x64
+
+      - name: Download Linux ARM64 stubs
+        uses: actions/download-artifact@v4
+        with:
+          name: godot-firebase-stubs-linux-arm64
+          path: ${{ runner.temp }}/stubs/linux-arm64
+
+      - name: Download Windows x64 stubs
+        uses: actions/download-artifact@v4
+        with:
+          name: godot-firebase-stubs-windows-x64
+          path: ${{ runner.temp }}/stubs/windows-x64
+
+      - name: Download Windows ARM64 stubs
+        uses: actions/download-artifact@v4
+        with:
+          name: godot-firebase-stubs-windows-arm64
+          path: ${{ runner.temp }}/stubs/windows-arm64
 
       - name: Install stubs
         run: |
           set -euo pipefail
-          cp "$RUNNER_TEMP/stubs/"*.so "$RUNNER_TEMP/stubs/"*.dll addons/GodotFirebase/bin/ 2>/dev/null || true
-          find "$RUNNER_TEMP/stubs" -type f | sort
-          ls -la addons/GodotFirebase/bin/
+          install_stub() {
+            local stub="$1"
+            local file base addon
+            file="$(basename "$stub")"
+            base="${file%%.*}"
+            case "$base" in
+              godot_firebase_core_stub)      addon="GodotFirebaseCore" ;;
+              godot_firebase_auth_stub)      addon="GodotFirebaseAuth" ;;
+              godot_firebase_app_check_stub) addon="GodotFirebaseAppCheck" ;;
+              *) echo "Unknown stub: $file" >&2; return 1 ;;
+            esac
+            cp "$stub" "addons/$addon/bin/$file"
+          }
+          find "$RUNNER_TEMP/stubs" -type f \( -name '*.so' -o -name '*.dll' \) -print0 |
+            while IFS= read -r -d '' stub; do install_stub "$stub"; done
 
       - name: Sign macOS frameworks
         if: env.MACOS_CERTIFICATE != ''
@@ -305,18 +297,22 @@ jobs:
             awk -F'"' '/Developer ID Application/ { print $2; exit }'
           )
           test -n "$SIGNING_IDENTITY"
-          find addons/GodotFirebase/bin -path '*.framework' -type d | sort | while read -r fw; do
+          find addons/GodotFirebaseCore addons/GodotFirebaseAuth addons/GodotFirebaseAppCheck \
+            -path '*/bin/*.framework' -type d -print | sort | while read -r fw; do
             codesign --keychain "$KEYCHAIN_PATH" --force --options runtime --timestamp \
               --sign "$SIGNING_IDENTITY" "$fw"
+            codesign --keychain "$KEYCHAIN_PATH" --verify --strict --deep --verbose=2 "$fw"
           done
 
-      - name: Archive addon
+      - name: Archive addons
         run: |
           set -euo pipefail
           PACKAGE_NAME="GodotFirebase-addons-${GITHUB_SHA}.zip"
-          rm -rf dist
-          mkdir -p dist/addons
-          ditto addons/GodotFirebase "dist/addons/GodotFirebase"
+          rm -rf dist && mkdir -p dist/addons
+          for MODULE in GodotFirebaseCore GodotFirebaseAuth GodotFirebaseAppCheck; do
+            test -d "addons/$MODULE"
+            ditto "addons/$MODULE" "dist/addons/$MODULE"
+          done
           ditto -c -k --sequesterRsrc --keepParent dist "$PACKAGE_NAME"
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> "$GITHUB_ENV"
 
@@ -347,10 +343,13 @@ jobs:
         run: |
           existing_keychains=()
           for keychain in ${ORIGINAL_KEYCHAINS:-}; do
-            if [ -e "$keychain" ]; then
-              existing_keychains+=("$keychain")
-            fi
+            if [ -e "$keychain" ]; then existing_keychains+=("$keychain"); fi
           done
+          if [ -n "${DEFAULT_KEYCHAIN_PATH:-}" ] && [ -e "$DEFAULT_KEYCHAIN_PATH" ]; then
+            security default-keychain -d user -s "$DEFAULT_KEYCHAIN_PATH" || true
+          elif [ "${#existing_keychains[@]}" -gt 0 ]; then
+            security default-keychain -d user -s "${existing_keychains[0]}" || true
+          fi
           if [ "${#existing_keychains[@]}" -gt 0 ]; then
             security list-keychains -d user -s "${existing_keychains[@]}" || true
           fi
