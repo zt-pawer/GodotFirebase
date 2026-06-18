@@ -1,26 +1,23 @@
-# Project specific ignores
-scn/
-icon.png.import
-default_env.tres
-.env
-*.bak
+# Swift Package Manager
+.build/
+.xcodebuild/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+.swiftpm/xcode/
 
-#
-# Godot-specific ignores
-#
-.godot/
-.import/
-export.cfg
-export_presets.cfg
-project.godot
+# Build artifacts
+dist/
+.tmp/
 
-#
-# Mono-specific ignores
-#
-.mono/
+# macOS
 .DS_Store
 
-#
-# VSCode-specific ignores
-#
+# Godot editor artifacts
+.godot/
+.import/
+
+# VSCode
 .vscode/
+
+# Binaries checked in to bin/ are intentional (xcframework, stubs).
+# Do not add addons/GodotFirebase/bin/ to this file.
