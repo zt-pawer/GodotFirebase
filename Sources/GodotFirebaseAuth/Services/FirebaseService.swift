@@ -1,7 +1,7 @@
 import Foundation
 import FirebaseCore
 
-public final class FirebaseService {
+public final class FirebaseService: @unchecked Sendable {
     public static let shared = FirebaseService()
     private var isFirebaseConfigured = false
     
