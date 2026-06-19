@@ -56,7 +56,7 @@ public struct DefaultFirebaseAuthProvider: FirebaseAuthProvider {
             completion(nil, firebaseNotConfiguredError())
             return
         }
-        let credential = OAuthProvider.credential(providerID: "apple.com", idToken: idToken, rawNonce: rawNonce)
+        let credential = OAuthProvider.credential(providerID: .apple, idToken: idToken, rawNonce: rawNonce)
         Auth.auth().signIn(with: credential) { result, error in
             completion(result?.user.uid, error)
         }
@@ -71,7 +71,7 @@ public struct DefaultFirebaseAuthProvider: FirebaseAuthProvider {
             completion(nil, noUserSignedInError())
             return
         }
-        let credential = OAuthProvider.credential(providerID: "apple.com", idToken: idToken, rawNonce: rawNonce)
+        let credential = OAuthProvider.credential(providerID: .apple, idToken: idToken, rawNonce: rawNonce)
         currentUser.link(with: credential) { result, error in
             completion(result?.user.uid, error)
         }
