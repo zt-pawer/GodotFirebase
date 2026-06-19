@@ -52,10 +52,12 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
     func signInAnonymously() {
         guard FirebaseApp.app() != nil else { sign_in_failed.emit("Firebase not configured"); return }
         Auth.auth().signInAnonymously { [weak self] result, error in
+            let uid = result?.user.uid
+            let msg = error?.localizedDescription
             DispatchQueue.main.async {
                 guard let self else { return }
-                if let error { self.sign_in_failed.emit(error.localizedDescription) }
-                else if let uid = result?.user.uid { self.sign_in_success.emit(uid) }
+                if let msg { self.sign_in_failed.emit(msg) }
+                else if let uid { self.sign_in_success.emit(uid) }
                 else { self.sign_in_failed.emit("Unknown error") }
             }
         }
@@ -76,10 +78,12 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
     func signInWithCustomToken(customToken: String) {
         guard FirebaseApp.app() != nil else { custom_token_sign_in_failed.emit("Firebase not configured"); return }
         Auth.auth().signIn(withCustomToken: customToken) { [weak self] result, error in
+            let uid = result?.user.uid
+            let msg = error?.localizedDescription
             DispatchQueue.main.async {
                 guard let self else { return }
-                if let error { self.custom_token_sign_in_failed.emit(error.localizedDescription) }
-                else if let uid = result?.user.uid { self.custom_token_sign_in_success.emit(uid) }
+                if let msg { self.custom_token_sign_in_failed.emit(msg) }
+                else if let uid { self.custom_token_sign_in_success.emit(uid) }
                 else { self.custom_token_sign_in_failed.emit("Unknown error") }
             }
         }
@@ -90,9 +94,10 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
         guard FirebaseApp.app() != nil else { id_token_failed.emit("Firebase not configured"); return }
         guard let user = Auth.auth().currentUser else { id_token_failed.emit("No user signed in"); return }
         user.getIDTokenForcingRefresh(forceRefresh) { [weak self] token, error in
+            let msg = error?.localizedDescription
             DispatchQueue.main.async {
                 guard let self else { return }
-                if let error { self.id_token_failed.emit(error.localizedDescription) }
+                if let msg { self.id_token_failed.emit(msg) }
                 else if let token { self.id_token_success.emit(token) }
                 else { self.id_token_failed.emit("Unknown error") }
             }
@@ -104,10 +109,12 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
         guard FirebaseApp.app() != nil else { sign_in_failed.emit("Firebase not configured"); return }
         let credential = OAuthProvider.credential(providerID: .apple, idToken: idToken, rawNonce: rawNonce)
         Auth.auth().signIn(with: credential) { [weak self] result, error in
+            let uid = result?.user.uid
+            let msg = error?.localizedDescription
             DispatchQueue.main.async {
                 guard let self else { return }
-                if let error { self.sign_in_failed.emit(error.localizedDescription) }
-                else if let uid = result?.user.uid { self.sign_in_success.emit(uid) }
+                if let msg { self.sign_in_failed.emit(msg) }
+                else if let uid { self.sign_in_success.emit(uid) }
                 else { self.sign_in_failed.emit("Unknown error") }
             }
         }
@@ -118,10 +125,12 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
         guard let currentUser = Auth.auth().currentUser else { link_failed.emit("No user signed in"); return }
         let credential = OAuthProvider.credential(providerID: .apple, idToken: idToken, rawNonce: rawNonce)
         currentUser.link(with: credential) { [weak self] result, error in
+            let uid = result?.user.uid
+            let msg = error?.localizedDescription
             DispatchQueue.main.async {
                 guard let self else { return }
-                if let error { self.link_failed.emit(error.localizedDescription) }
-                else if let uid = result?.user.uid { self.link_success.emit(uid) }
+                if let msg { self.link_failed.emit(msg) }
+                else if let uid { self.link_success.emit(uid) }
                 else { self.link_failed.emit("Unknown error") }
             }
         }
@@ -132,10 +141,12 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
         guard FirebaseApp.app() != nil else { sign_in_failed.emit("Firebase not configured"); return }
         let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
         Auth.auth().signIn(with: credential) { [weak self] result, error in
+            let uid = result?.user.uid
+            let msg = error?.localizedDescription
             DispatchQueue.main.async {
                 guard let self else { return }
-                if let error { self.sign_in_failed.emit(error.localizedDescription) }
-                else if let uid = result?.user.uid { self.sign_in_success.emit(uid) }
+                if let msg { self.sign_in_failed.emit(msg) }
+                else if let uid { self.sign_in_success.emit(uid) }
                 else { self.sign_in_failed.emit("Unknown error") }
             }
         }
@@ -146,10 +157,12 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
         guard let currentUser = Auth.auth().currentUser else { link_failed.emit("No user signed in"); return }
         let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
         currentUser.link(with: credential) { [weak self] result, error in
+            let uid = result?.user.uid
+            let msg = error?.localizedDescription
             DispatchQueue.main.async {
                 guard let self else { return }
-                if let error { self.link_failed.emit(error.localizedDescription) }
-                else if let uid = result?.user.uid { self.link_success.emit(uid) }
+                if let msg { self.link_failed.emit(msg) }
+                else if let uid { self.link_success.emit(uid) }
                 else { self.link_failed.emit("Unknown error") }
             }
         }
@@ -160,10 +173,12 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
         guard FirebaseApp.app() != nil else { sign_in_failed.emit("Firebase not configured"); return }
         let credential = FacebookAuthProvider.credential(withAccessToken: accessToken)
         Auth.auth().signIn(with: credential) { [weak self] result, error in
+            let uid = result?.user.uid
+            let msg = error?.localizedDescription
             DispatchQueue.main.async {
                 guard let self else { return }
-                if let error { self.sign_in_failed.emit(error.localizedDescription) }
-                else if let uid = result?.user.uid { self.sign_in_success.emit(uid) }
+                if let msg { self.sign_in_failed.emit(msg) }
+                else if let uid { self.sign_in_success.emit(uid) }
                 else { self.sign_in_failed.emit("Unknown error") }
             }
         }
@@ -174,10 +189,12 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
         guard let currentUser = Auth.auth().currentUser else { link_failed.emit("No user signed in"); return }
         let credential = FacebookAuthProvider.credential(withAccessToken: accessToken)
         currentUser.link(with: credential) { [weak self] result, error in
+            let uid = result?.user.uid
+            let msg = error?.localizedDescription
             DispatchQueue.main.async {
                 guard let self else { return }
-                if let error { self.link_failed.emit(error.localizedDescription) }
-                else if let uid = result?.user.uid { self.link_success.emit(uid) }
+                if let msg { self.link_failed.emit(msg) }
+                else if let uid { self.link_success.emit(uid) }
                 else { self.link_failed.emit("Unknown error") }
             }
         }
@@ -187,13 +204,19 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
     func signInWithGameCenter() {
         guard FirebaseApp.app() != nil else { sign_in_failed.emit("Firebase not configured"); return }
         GameCenterAuthProvider.getCredential { [weak self] credential, error in
-            guard let self else { return }
-            if let error { DispatchQueue.main.async { self.sign_in_failed.emit(error.localizedDescription) }; return }
-            guard let credential else { DispatchQueue.main.async { self.sign_in_failed.emit("Failed to retrieve Game Center credential") }; return }
+            let credentialMsg = error?.localizedDescription
+            guard let credential else {
+                let msg = credentialMsg ?? "Failed to retrieve Game Center credential"
+                DispatchQueue.main.async { self?.sign_in_failed.emit(msg) }
+                return
+            }
             Auth.auth().signIn(with: credential) { result, error in
+                let uid = result?.user.uid
+                let msg = error?.localizedDescription
                 DispatchQueue.main.async {
-                    if let error { self.sign_in_failed.emit(error.localizedDescription) }
-                    else if let uid = result?.user.uid { self.sign_in_success.emit(uid) }
+                    guard let self else { return }
+                    if let msg { self.sign_in_failed.emit(msg) }
+                    else if let uid { self.sign_in_success.emit(uid) }
                     else { self.sign_in_failed.emit("Unknown error") }
                 }
             }
@@ -204,13 +227,19 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
     func linkWithGameCenter() {
         guard let currentUser = Auth.auth().currentUser else { link_failed.emit("No user signed in"); return }
         GameCenterAuthProvider.getCredential { [weak self] credential, error in
-            guard let self else { return }
-            if let error { DispatchQueue.main.async { self.link_failed.emit(error.localizedDescription) }; return }
-            guard let credential else { DispatchQueue.main.async { self.link_failed.emit("Failed to retrieve Game Center credential") }; return }
+            let credentialMsg = error?.localizedDescription
+            guard let credential else {
+                let msg = credentialMsg ?? "Failed to retrieve Game Center credential"
+                DispatchQueue.main.async { self?.link_failed.emit(msg) }
+                return
+            }
             currentUser.link(with: credential) { result, error in
+                let uid = result?.user.uid
+                let msg = error?.localizedDescription
                 DispatchQueue.main.async {
-                    if let error { self.link_failed.emit(error.localizedDescription) }
-                    else if let uid = result?.user.uid { self.link_success.emit(uid) }
+                    guard let self else { return }
+                    if let msg { self.link_failed.emit(msg) }
+                    else if let uid { self.link_success.emit(uid) }
                     else { self.link_failed.emit("Unknown error") }
                 }
             }
