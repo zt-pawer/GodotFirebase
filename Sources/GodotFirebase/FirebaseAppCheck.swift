@@ -53,14 +53,13 @@ class GodotFirebaseAppCheck: RefCounted, @unchecked Sendable {
             token_failed.emit("Unknown App Check provider: \(_providerType)")
             return
         }
-        provider?.getToken(forcingRefresh: forceRefresh) { [weak self] token, error in
-            let tokenString = token?.token
-            let errorMessage = error?.localizedDescription
-            DispatchQueue.main.async {
-                guard let self else { return }
-                if let errorMessage { self.token_failed.emit(errorMessage) }
-                else if let tokenString { self.token_success.emit(tokenString) }
-                else { self.token_failed.emit("Unknown App Check error") }
+        guard let provider else { return }
+        Task { [weak self] in
+            do {
+                let token = try await provider.getToken()
+                await MainActor.run { self?.token_success.emit(token.token) }
+            } catch {
+                await MainActor.run { self?.token_failed.emit(error.localizedDescription) }
             }
         }
         #endif
