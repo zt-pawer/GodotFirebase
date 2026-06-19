@@ -1,27 +1,43 @@
+@preconcurrency import SwiftGodotRuntime
 import Foundation
-import SwiftGodotRuntime
+import FirebaseAppCheck
+#if os(iOS)
+import DeviceCheck
+#endif
 
 @Godot
 class GodotFirebaseAppCheck: RefCounted, @unchecked Sendable {
     @Signal var token_success: SignalWithArguments<String>
     @Signal var token_failed: SignalWithArguments<String>
 
-    private let service = FirebaseAppCheckService()
-
     @Callable
     func configureAppCheck(providerType: String) {
-        service.configureAppCheck(providerType: providerType)
+        #if os(iOS)
+        var factory: AppCheckProviderFactory? = nil
+        let type = providerType.lowercased()
+        if type == "debug" {
+            factory = AppCheckDebugProviderFactory()
+        } else if type == "devicecheck" {
+            factory = DeviceCheckProviderFactory()
+        } else if type == "appattest" {
+            #if !targetEnvironment(simulator)
+            if let cls = NSClassFromString("FIRAppAttestProviderFactory") as? NSObject.Type {
+                factory = cls.init() as? AppCheckProviderFactory
+            }
+            #endif
+        }
+        if let factory { AppCheck.setAppCheckProviderFactory(factory) }
+        #endif
     }
 
     @Callable
     func getAppCheckToken(forceRefresh: Bool) {
-        service.getAppCheckToken(forceRefresh: forceRefresh) { [weak self] result in
+        AppCheck.appCheck().token(forcingRefresh: forceRefresh) { [weak self] token, error in
             DispatchQueue.main.async {
-                guard let self = self else { return }
-                switch result {
-                case .success(let token): self.token_success.emit(token)
-                case .failure(let error): self.token_failed.emit(error.localizedDescription)
-                }
+                guard let self else { return }
+                if let error { self.token_failed.emit(error.localizedDescription) }
+                else if let token { self.token_success.emit(token.token) }
+                else { self.token_failed.emit("Unknown App Check error") }
             }
         }
     }
