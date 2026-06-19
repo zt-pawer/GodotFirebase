@@ -11,7 +11,7 @@ RUNTIME_FRAMEWORK_RPATH ?= @loader_path/../../../GodotApplePluginsRuntime/bin
 RUNTIME_FRAMEWORK ?= SwiftGodotRuntime
 RUNTIME_LOAD_DYLIB ?= @rpath/$(RUNTIME_FRAMEWORK).framework/Versions/A/$(RUNTIME_FRAMEWORK)
 XCODEBUILD ?= xcodebuild
-XCODEBUILD_FLAGS ?= -skipPackagePluginValidation
+XCODEBUILD_FLAGS ?= -skipPackagePluginValidation -skipMacroValidation
 XCODEBUILD_SETTINGS ?= CODE_SIGNING_ALLOWED=NO OTHER_LDFLAGS=-Wl,-headerpad_max_install_names
 XCODEBUILD_LOG_ON_ERROR ?=
 XCODEBUILD_LOG_DIR ?=
