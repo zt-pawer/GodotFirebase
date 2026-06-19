@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "GodotFirebaseAuth"
-               BuildableName = "GodotFirebaseAuth"
-               BlueprintName = "GodotFirebaseAuth"
+               BlueprintIdentifier = "GodotFirebase"
+               BuildableName = "GodotFirebase"
+               BlueprintName = "GodotFirebase"
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
@@ -51,9 +51,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "GodotFirebaseAuth"
-            BuildableName = "GodotFirebaseAuth"
-            BlueprintName = "GodotFirebaseAuth"
+            BlueprintIdentifier = "GodotFirebase"
+            BuildableName = "GodotFirebase"
+            BlueprintName = "GodotFirebase"
             ReferencedContainer = "container:">
          </BuildableReference>
       </MacroExpansion>

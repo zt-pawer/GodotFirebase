@@ -5,7 +5,7 @@ HOST_ARCH ?= $(shell uname -m)
 DESTINATIONS ?= generic/platform=iOS generic/platform=iOS\ Simulator platform=macOS,arch=arm64 platform=macOS,arch=x86_64
 DERIVED_DATA ?= $(CURDIR)/.xcodebuild
 WORKSPACE ?= .swiftpm/xcode/package.xcworkspace
-MODULE_NAMES ?= GodotFirebaseAuth GodotFirebaseAppCheck
+MODULE_NAMES ?= GodotFirebase
 RUNTIME_RPATH ?= @loader_path/../../../../../GodotApplePluginsRuntime/bin
 RUNTIME_FRAMEWORK_RPATH ?= @loader_path/../../../GodotApplePluginsRuntime/bin
 RUNTIME_FRAMEWORK ?= SwiftGodotRuntime

@@ -23,8 +23,7 @@ let package = Package(
     name: "GodotFirebase",
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
-        .library(name: "GodotFirebaseAuth", type: .dynamic, targets: ["GodotFirebaseAuth"]),
-        .library(name: "GodotFirebaseAppCheck", type: .dynamic, targets: ["GodotFirebaseAppCheck"]),
+        .library(name: "GodotFirebase", type: .dynamic, targets: ["GodotFirebase"]),
     ],
     dependencies: [
         .package(url: "https://github.com/migueldeicaza/SwiftGodot", revision: "f528ba67accbe3cca06c1d401c8f9d7c17022f63"),
@@ -32,26 +31,19 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "GodotFirebaseAuth",
+            name: "GodotFirebase",
             dependencies: [
                 runtimeDependency,
                 .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
-            ],
-            swiftSettings: swiftSettings,
-            linkerSettings: linkerSettings
-        ),
-        .target(
-            name: "GodotFirebaseAppCheck",
-            dependencies: [
-                runtimeDependency,
                 .product(name: "FirebaseAppCheck", package: "firebase-ios-sdk"),
             ],
+            path: "Sources/GodotFirebase",
             swiftSettings: swiftSettings,
             linkerSettings: linkerSettings
         ),
         .testTarget(
             name: "GodotFirebaseTests",
-            dependencies: ["GodotFirebaseAuth"]
+            dependencies: ["GodotFirebase"]
         ),
     ]
 )
