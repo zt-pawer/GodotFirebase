@@ -33,10 +33,12 @@ class GodotFirebaseAppCheck: RefCounted, @unchecked Sendable {
     @Callable
     func getAppCheckToken(forceRefresh: Bool) {
         AppCheck.appCheck().token(forcingRefresh: forceRefresh) { [weak self] token, error in
+            let tokenString = token?.token
+            let errorMessage = error?.localizedDescription
             DispatchQueue.main.async {
                 guard let self else { return }
-                if let error { self.token_failed.emit(error.localizedDescription) }
-                else if let token { self.token_success.emit(token.token) }
+                if let errorMessage { self.token_failed.emit(errorMessage) }
+                else if let tokenString { self.token_success.emit(tokenString) }
                 else { self.token_failed.emit("Unknown App Check error") }
             }
         }
