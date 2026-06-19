@@ -56,10 +56,11 @@ class GodotFirebaseAppCheck: RefCounted, @unchecked Sendable {
         guard let provider else { return }
         Task { [weak self] in
             do {
-                let token = try await provider.getToken()
-                await MainActor.run { self?.token_success.emit(token.token) }
+                let tokenString = try await provider.getToken().token
+                await MainActor.run { self?.token_success.emit(tokenString) }
             } catch {
-                await MainActor.run { self?.token_failed.emit(error.localizedDescription) }
+                let message = error.localizedDescription
+                await MainActor.run { self?.token_failed.emit(message) }
             }
         }
         #endif
