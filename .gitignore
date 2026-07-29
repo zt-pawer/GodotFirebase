@@ -20,6 +20,15 @@ dist/
 # VSCode
 .vscode/
 
+# JetBrains IDEs (Android Studio)
+.idea/
+
+# Android
+android/.gradle/
+android/build/
+android/.cxx/
+android/local.properties
+
 # Others
 docs/
 
