@@ -245,4 +245,14 @@ class GodotFirebaseAuth: Object, @unchecked Sendable {
             }
         }
     }
+
+    @Callable
+    func signInWithPlayGames(serverAuthCode: String) {
+        sign_in_failed.emit("Play Games sign-in is not available on iOS/macOS")
+    }
+
+    @Callable
+    func linkWithPlayGames(serverAuthCode: String) {
+        link_failed.emit("Play Games sign-in is not available on iOS/macOS")
+    }
 }

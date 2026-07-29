@@ -7,6 +7,7 @@ import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.PlayGamesAuthProvider
 import org.godotengine.godot.Godot
 import org.godotengine.godot.plugin.GodotPlugin
 import org.godotengine.godot.plugin.SignalInfo
@@ -267,5 +268,38 @@ class GodotFirebaseAuth(godot: Godot) : GodotPlugin(godot) {
     @UsedByGodot
     fun linkWithGameCenter() {
         emitSignal("link_failed", "Game Center sign-in is not available on Android")
+    }
+
+    @UsedByGodot
+    fun signInWithPlayGames(serverAuthCode: String) {
+        if (!isFirebaseConfigured()) {
+            emitSignal("sign_in_failed", "Firebase not configured")
+            return
+        }
+        val credential = PlayGamesAuthProvider.getCredential(serverAuthCode)
+        FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                emitSignal("sign_in_success", task.result?.user?.uid ?: "")
+            } else {
+                emitSignal("sign_in_failed", task.exception?.message ?: "Unknown error")
+            }
+        }
+    }
+
+    @UsedByGodot
+    fun linkWithPlayGames(serverAuthCode: String) {
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            emitSignal("link_failed", "No user signed in")
+            return
+        }
+        val credential = PlayGamesAuthProvider.getCredential(serverAuthCode)
+        user.linkWithCredential(credential).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                emitSignal("link_success", task.result?.user?.uid ?: "")
+            } else {
+                emitSignal("link_failed", task.exception?.message ?: "Unknown error")
+            }
+        }
     }
 }

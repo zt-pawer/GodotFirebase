@@ -103,8 +103,11 @@ func _on_sign_in_failed(error: String) -> void:
 | `linkWithFacebook(accessToken: String)` | Link Facebook to the current Firebase user |
 | `signInWithGameCenter()` | Sign in with Game Center credential |
 | `linkWithGameCenter()` | Link Game Center to the current Firebase user |
+| `signInWithPlayGames(serverAuthCode: String)` | Sign in with a Play Games Services server auth code |
+| `linkWithPlayGames(serverAuthCode: String)` | Link Play Games to the current Firebase user |
 
 > **Android**: Apple and Game Center have no platform equivalent — `signInWithApple`/`linkWithApple`/`signInWithGameCenter`/`linkWithGameCenter` always emit `sign_in_failed`/`link_failed` there.
+> **iOS/macOS**: Play Games Services has no platform equivalent — `signInWithPlayGames`/`linkWithPlayGames` always emit `sign_in_failed`/`link_failed` there. On Android, obtain `serverAuthCode` via Play Games Sign-In (`GamesSignInClient`) before calling.
 
 ---
 
