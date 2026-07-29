@@ -7,7 +7,7 @@ import DeviceCheck
 #endif
 
 @Godot
-class GodotFirebaseAppCheck: RefCounted, @unchecked Sendable {
+class GodotFirebaseAppCheck: Object, @unchecked Sendable {
     @Signal var token_success: SignalWithArguments<String>
     @Signal var token_failed: SignalWithArguments<String>
 

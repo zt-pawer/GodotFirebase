@@ -4,7 +4,7 @@ import FirebaseCore
 import FirebaseAuth
 
 @Godot
-class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
+class GodotFirebaseAuth: Object, @unchecked Sendable {
     @Signal var sign_in_success: SignalWithArguments<String>
     @Signal var sign_in_failed: SignalWithArguments<String>
     @Signal var sign_out_success: SimpleSignal

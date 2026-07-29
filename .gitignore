@@ -20,5 +20,8 @@ dist/
 # VSCode
 .vscode/
 
+# Others
+docs/
+
 # Binaries checked in to bin/ are intentional (xcframework, stubs).
 # Do not add addons/GodotFirebase/bin/ to this file.

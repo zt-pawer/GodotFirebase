@@ -33,7 +33,7 @@ The plugin also ships empty stubs for Linux and Windows so your project compiles
 
 ## API
 
-All classes are guarded with `ClassDB.class_exists("ClassName")` — they only exist on iOS/macOS. On other platforms the guard simply skips instantiation.
+Both classes are registered as Engine singletons — guard access with `Engine.has_singleton("ClassName")`; they only exist on iOS/macOS. On other platforms the guard simply skips access.
 
 ---
 
@@ -49,9 +49,9 @@ extends Node
 var _auth: Object
 
 func _ready() -> void:
-    if not ClassDB.class_exists("GodotFirebaseAuth"):
+    if not Engine.has_singleton("GodotFirebaseAuth"):
         return
-    _auth = ClassDB.instantiate("GodotFirebaseAuth")
+    _auth = Engine.get_singleton("GodotFirebaseAuth")
     _auth.sign_in_success.connect(_on_sign_in_success)
     _auth.sign_in_failed.connect(_on_sign_in_failed)
     _auth.configure()
@@ -114,9 +114,9 @@ extends Node
 var _app_check: Object
 
 func _ready() -> void:
-    if not ClassDB.class_exists("GodotFirebaseAppCheck"):
+    if not Engine.has_singleton("GodotFirebaseAppCheck"):
         return
-    _app_check = ClassDB.instantiate("GodotFirebaseAppCheck")
+    _app_check = Engine.get_singleton("GodotFirebaseAppCheck")
     _app_check.token_success.connect(_on_token_success)
     _app_check.token_failed.connect(_on_token_failed)
     # Configure before GodotFirebaseAuth.configure()
