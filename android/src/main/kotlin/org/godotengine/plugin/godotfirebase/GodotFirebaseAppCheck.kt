@@ -1,18 +1,17 @@
 package org.godotengine.plugin.godotfirebase
 
-import android.util.Log
+import com.google.firebase.FirebaseApp
+import com.google.firebase.appcheck.FirebaseAppCheck
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import org.godotengine.godot.Godot
 import org.godotengine.godot.plugin.GodotPlugin
 import org.godotengine.godot.plugin.SignalInfo
 import org.godotengine.godot.plugin.UsedByGodot
 
-private const val TAG = "GodotFirebaseAppCheck"
-
-// Walking skeleton: every method below is a stub (log + emit the matching
-// `_failed` signal) that proves the Kotlin GodotPlugin is reachable via
-// Engine.get_singleton("GodotFirebaseAppCheck") through the full
-// native-shim + AAR path. Real Play Integrity/debug provider logic is a
-// follow-up PR.
+// Must be called BEFORE GodotFirebaseAuth.configure() so the factory is
+// installed before FirebaseApp.initializeApp() initialises App Check,
+// mirroring the ordering constraint in FirebaseAppCheck.swift.
 class GodotFirebaseAppCheck(godot: Godot) : GodotPlugin(godot) {
 
     companion object {
@@ -31,18 +30,30 @@ class GodotFirebaseAppCheck(godot: Godot) : GodotPlugin(godot) {
         SignalInfo("token_failed", String::class.java),
     )
 
-    private fun stub(method: String) {
-        Log.w(TAG, "$method() is a stub on Android — real App Check logic lands in a follow-up PR")
-    }
-
     @UsedByGodot
     fun configureAppCheck(providerType: String) {
-        stub("configureAppCheck")
+        val factory = when (providerType.lowercase()) {
+            "debug" -> DebugAppCheckProviderFactory.getInstance()
+            "playintegrity" -> PlayIntegrityAppCheckProviderFactory.getInstance()
+            else -> return
+        }
+        FirebaseAppCheck.getInstance().installAppCheckProviderFactory(factory)
     }
 
     @UsedByGodot
     fun getAppCheckToken(forceRefresh: Boolean) {
-        stub("getAppCheckToken")
-        emitSignal("token_failed", "Android App Check not implemented yet")
+        try {
+            FirebaseApp.getInstance()
+        } catch (e: IllegalStateException) {
+            emitSignal("token_failed", "Firebase not configured — call GodotFirebaseAuth.configure() first")
+            return
+        }
+        FirebaseAppCheck.getInstance().getAppCheckToken(forceRefresh).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                emitSignal("token_success", task.result?.token ?: "")
+            } else {
+                emitSignal("token_failed", task.exception?.message ?: "Unknown App Check error")
+            }
+        }
     }
 }

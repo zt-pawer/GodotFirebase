@@ -64,8 +64,17 @@ tasks.named("preBuild") {
 
 dependencies {
     compileOnly("org.godotengine:godot:4.7.1.stable")
-    // Real Firebase Auth/App Check dependencies land in the follow-up PR
-    // that fills in real logic (this PR is a stub-only walking skeleton).
+
+    // No com.google.gms.google-services plugin: this is a library module, not
+    // an application module, and Godot's exported Android project is
+    // generated at export time, not available at plugin-build time. Instead,
+    // configure() reads google-services.json directly at runtime (mirroring
+    // how the iOS side parses GoogleService-Info.plist directly) and builds
+    // FirebaseOptions manually -- see GodotFirebaseAuth.kt.
+    implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation("com.google.firebase:firebase-appcheck-debug")
 }
 
 // Copies build outputs into the demo's addon bin/ dir, matching the paths
