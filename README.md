@@ -2,21 +2,25 @@
 
 [![Godot](https://img.shields.io/badge/Godot%20Engine-4.2+-blue.svg)](https://github.com/godotengine/godot/)
 [![SwiftGodot](https://img.shields.io/badge/SwiftGodot-pinned-blue.svg)](https://github.com/migueldeicaza/SwiftGodot/)
-![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20macOS-333333.svg?style=flat)
+![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20macOS%20%7C%20Android-333333.svg?style=flat)
 ![iOS](https://img.shields.io/badge/iOS-17+-green.svg?style=flat)
 ![macOS](https://img.shields.io/badge/macOS-14+-green.svg?style=flat)
+![Android](https://img.shields.io/badge/Android-API%2024+-green.svg?style=flat)
 [![Swift](https://img.shields.io/badge/Swift-6-blue.svg)](https://www.swift.org/)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 
-Native Firebase plugin for Godot 4 on iOS and macOS, built with Swift and [SwiftGodotRuntime](https://github.com/migueldeicaza/SwiftGodot). Provides Firebase Auth and Firebase App Check as standalone GDExtension classes with no service layer — signals go directly to your GDScript.
+Native Firebase plugin for Godot 4 on iOS, macOS, and Android, built with Swift ([SwiftGodotRuntime](https://github.com/migueldeicaza/SwiftGodot)) and Kotlin. Provides Firebase Auth and Firebase App Check as standalone GDExtension classes with no service layer — signals go directly to your GDScript.
+
+Both classes are registered as Engine singletons on every platform they're available on, so the same GDScript call sites (`Engine.get_singleton("GodotFirebaseAuth")`) work across iOS, macOS, and Android.
 
 ---
 
 ## Requirements
 
-- iOS 17.0 / macOS 14.0
+- iOS 17.0 / macOS 14.0, or Android API 24+
 - Godot 4.2+
-- [GodotApplePlugins](https://github.com/zt-pawer/GodotApplePlugins) installed — provides the shared `SwiftGodotRuntime` the plugin links against
+- iOS/macOS: [GodotApplePlugins](https://github.com/zt-pawer/GodotApplePlugins) installed — provides the shared `SwiftGodotRuntime` the plugin links against
+- Android: export preset must have `gradle_build/use_gradle_build = true` (required for any AAR-based Godot plugin); Play Integrity App Check needs a real, signed device build — it won't pass on an emulator or debug build
 
 The plugin also ships empty stubs for Linux and Windows so your project compiles on those platforms without errors.
 
@@ -25,9 +29,9 @@ The plugin also ships empty stubs for Linux and Windows so your project compiles
 ## Installation
 
 1. Download the latest release zip from [Releases](https://github.com/zt-pawer/GodotFirebase/releases)
-2. Unzip and copy `addons/GodotFirebaseAuth/` and `addons/GodotFirebaseAppCheck/` into your Godot project's `addons/`
-3. Ensure `addons/GodotApplePluginsRuntime/` is also present (from [GodotApplePlugins](https://github.com/zt-pawer/GodotApplePlugins))
-4. Add `GoogleService-Info.plist` to your iOS export resources in the Godot export settings
+2. Unzip and copy `addons/GodotFirebase/` into your Godot project's `addons/`
+3. iOS/macOS: ensure `addons/GodotApplePluginsRuntime/` is also present (from [GodotApplePlugins](https://github.com/zt-pawer/GodotApplePlugins)), and add `GoogleService-Info.plist` to your iOS export resources in the Godot export settings
+4. Android: place your `google-services.json` at `res://android/build/assets/google-services.json` — Godot's "Use Gradle Build" custom export template copies it into the exported app's `assets/`, where `GodotFirebaseAuth.configure()` reads it at runtime (there's no Gradle-plugin codegen step, since the plugin is a library module and Godot's app module doesn't exist until export)
 
 ---
 
@@ -100,6 +104,8 @@ func _on_sign_in_failed(error: String) -> void:
 | `signInWithGameCenter()` | Sign in with Game Center credential |
 | `linkWithGameCenter()` | Link Game Center to the current Firebase user |
 
+> **Android**: Apple and Game Center have no platform equivalent — `signInWithApple`/`linkWithApple`/`signInWithGameCenter`/`linkWithGameCenter` always emit `sign_in_failed`/`link_failed` there.
+
 ---
 
 ### `GodotFirebaseAppCheck`
@@ -141,14 +147,16 @@ func _on_token_failed(error: String) -> void:
 
 | Method | Description |
 |--------|-------------|
-| `configureAppCheck(providerType: String)` | Configure the attestation provider. Call before `GodotFirebaseAuth.configure()`. Values: `"appattest"` (real device only), `"devicecheck"`, `"debug"` (simulator/testing) |
+| `configureAppCheck(providerType: String)` | Configure the attestation provider. Call before `GodotFirebaseAuth.configure()`. iOS/macOS values: `"appattest"` (real device only), `"devicecheck"`, `"debug"` (simulator/testing). Android values: `"playintegrity"` (real signed device build), `"debug"` |
 | `getAppCheckToken(forceRefresh: Bool)` | Request the current App Check token |
 
 ---
 
 ## Building from Source
 
-Requires Xcode on macOS. Before building, open the package in Xcode and share the scheme (**Product → Manage Schemes → Shared**) so `xcodebuild` can find it.
+### iOS / macOS
+
+Requires Xcode on macOS. The SwiftPM package lives under `apple/`. Before building, open `apple/.swiftpm/xcode/package.xcworkspace` in Xcode and share the scheme (**Product → Manage Schemes → Shared**) so `xcodebuild` can find it.
 
 ```bash
 make build
@@ -156,6 +164,17 @@ make dist
 ```
 
 `make build` compiles xcframeworks for iOS, iOS Simulator, and macOS. `make dist` assembles the `addons/` folder ready to drop into your Godot project.
+
+### Android
+
+Requires JDK 17, Android SDK/NDK (`ANDROID_NDK_VERSION` in the `Makefile`), and `scons` for building `godot-cpp`. The `godot-cpp` submodule must be initialised first:
+
+```bash
+git submodule update --init
+make android
+```
+
+`make android` builds `godot-cpp` for arm64 (debug/release), runs the Gradle build, and copies the resulting `.aar`/`.so` into `addons/GodotFirebase/bin/android/`.
 
 ---
 
