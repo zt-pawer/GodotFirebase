@@ -4,7 +4,7 @@ import FirebaseCore
 import FirebaseAuth
 
 @Godot
-class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
+class GodotFirebaseAuth: Object, @unchecked Sendable {
     @Signal var sign_in_success: SignalWithArguments<String>
     @Signal var sign_in_failed: SignalWithArguments<String>
     @Signal var sign_out_success: SimpleSignal
@@ -244,5 +244,15 @@ class GodotFirebaseAuth: RefCounted, @unchecked Sendable {
                 }
             }
         }
+    }
+
+    @Callable
+    func signInWithPlayGames(serverAuthCode: String) {
+        sign_in_failed.emit("Play Games sign-in is not available on iOS/macOS")
+    }
+
+    @Callable
+    func linkWithPlayGames(serverAuthCode: String) {
+        link_failed.emit("Play Games sign-in is not available on iOS/macOS")
     }
 }

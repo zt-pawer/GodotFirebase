@@ -1,10 +1,10 @@
-.PHONY: build dist
+.PHONY: build dist android
 
 CONFIG ?= Release
 HOST_ARCH ?= $(shell uname -m)
 DESTINATIONS ?= generic/platform=iOS generic/platform=iOS\ Simulator platform=macOS,arch=arm64 platform=macOS,arch=x86_64
 DERIVED_DATA ?= $(CURDIR)/.xcodebuild
-WORKSPACE ?= .swiftpm/xcode/package.xcworkspace
+WORKSPACE ?= apple/.swiftpm/xcode/package.xcworkspace
 MODULE_NAMES ?= GodotFirebase
 RUNTIME_RPATH ?= @loader_path/../../../../../GodotApplePluginsRuntime/bin
 RUNTIME_FRAMEWORK_RPATH ?= @loader_path/../../../GodotApplePluginsRuntime/bin
@@ -16,6 +16,9 @@ XCODEBUILD_SETTINGS ?= CODE_SIGNING_ALLOWED=NO OTHER_LDFLAGS=-Wl,-headerpad_max_
 XCODEBUILD_LOG_ON_ERROR ?=
 XCODEBUILD_LOG_DIR ?=
 XCODEBUILD_HEARTBEAT_SECONDS ?= 60
+
+ANDROID_NDK_VERSION ?= 28.0.12674087
+ANDROID_MODULE_NAME ?= GodotFirebase
 
 build:
 	set -e; \
@@ -49,7 +52,7 @@ build:
 			"$$@"; \
 		fi; \
 	}; \
-	swift build; \
+	swift build --package-path apple; \
 	for dest in $(DESTINATIONS); do \
 		platform_name=`echo "$$dest" | sed -n 's/.*platform=\([^,]*\).*/\1/p'`; \
 		if [ -z "$$platform_name" ]; then platform_name="iOS"; fi; \
@@ -60,6 +63,10 @@ build:
 		if [ "$$platform_lc" = "macos" ]; then suffix="$$arch_name"; fi; \
 		for module in $(MODULE_NAMES); do \
 			echo "Building $$module for $$dest"; \
+			extra_settings=""; \
+			if [ "$$platform_lc" = "macos" ] && [ "$$arch_name" = "x86_64" ]; then \
+				extra_settings="ARCHS=x86_64 VALID_ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO"; \
+			fi; \
 			run_xcodebuild $(XCODEBUILD) \
 				$(XCODEBUILD_FLAGS) \
 				-workspace '$(WORKSPACE)' \
@@ -67,7 +74,7 @@ build:
 				-configuration '$(CONFIG)' \
 				-destination "$$dest" \
 				-derivedDataPath "$(DERIVED_DATA)$$suffix" \
-				$(XCODEBUILD_SETTINGS) \
+				$(XCODEBUILD_SETTINGS) $$extra_settings \
 				build; \
 			echo "Built $$module for $$dest"; \
 		done; \
@@ -131,3 +138,17 @@ dist:
 			fi; \
 		fi; \
 	done
+
+android:
+	set -e; \
+	for target in template_debug template_release; do \
+		( cd godot-cpp && scons platform=android target=$$target arch=arm64 \
+			ndk_version=$(ANDROID_NDK_VERSION) -j$$(sysctl -n hw.ncpu 2>/dev/null || nproc) ); \
+	done; \
+	( cd android && ./gradlew assembleDebug assembleRelease copyToDemoAddons ); \
+	addon="$(CURDIR)/addons/$(ANDROID_MODULE_NAME)/bin/android"; \
+	mkdir -p "$$addon/debug/arm64-v8a" "$$addon/release/arm64-v8a"; \
+	cp "android/build/outputs/aar/$(ANDROID_MODULE_NAME)-debug.aar" "$$addon/debug/"; \
+	cp "android/build/outputs/aar/$(ANDROID_MODULE_NAME)-release.aar" "$$addon/release/"; \
+	cp "android/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/arm64-v8a/lib$(ANDROID_MODULE_NAME).so" "$$addon/debug/arm64-v8a/"; \
+	cp "android/build/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/arm64-v8a/lib$(ANDROID_MODULE_NAME).so" "$$addon/release/arm64-v8a/"

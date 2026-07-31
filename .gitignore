@@ -1,10 +1,10 @@
 # Swift Package Manager
 .build/
 .xcodebuild/
-*.xcworkspace/xcuserdata/
+apple/*.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
-.swiftpm/xcode/xcuserdata/
-.swiftpm/xcode/package.xcworkspace/xcuserdata/
+apple/.swiftpm/xcode/xcuserdata/
+apple/.swiftpm/xcode/package.xcworkspace/xcuserdata/
 
 # Build artifacts
 dist/
@@ -19,6 +19,18 @@ dist/
 
 # VSCode
 .vscode/
+
+# JetBrains IDEs (Android Studio)
+.idea/
+
+# Android
+android/.gradle/
+android/build/
+android/.cxx/
+android/local.properties
+
+# Others
+docs/
 
 # Binaries checked in to bin/ are intentional (xcframework, stubs).
 # Do not add addons/GodotFirebase/bin/ to this file.

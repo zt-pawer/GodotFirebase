@@ -19,9 +19,21 @@ public let godotFirebaseMinimumInitializationLevel = minimumInitializationLevel(
 
 public func godotFirebaseInitialize(level: ExtensionInitializationLevel) {
     godotFirebaseTypes[level]?.forEach(register)
+    if level == .scene {
+        Engine.registerSingleton(name: StringName("GodotFirebaseAuth"), instance: GodotFirebaseAuth())
+        Engine.registerSingleton(name: StringName("GodotFirebaseAppCheck"), instance: GodotFirebaseAppCheck())
+    }
 }
 
 public func godotFirebaseDeinitialize(level: ExtensionInitializationLevel) {
+    if level == .scene {
+        for name in ["GodotFirebaseAuth", "GodotFirebaseAppCheck"] {
+            if let instance = Engine.getSingleton(name: StringName(name)) {
+                Engine.unregisterSingleton(name: StringName(name))
+                instance.free()
+            }
+        }
+    }
     godotFirebaseTypes[level]?.reversed().forEach(unregister)
 }
 
