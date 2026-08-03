@@ -26,7 +26,7 @@ let package = Package(
         .library(name: "GodotFirebase", type: .dynamic, targets: ["GodotFirebase"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/migueldeicaza/SwiftGodot", revision: "f528ba67accbe3cca06c1d401c8f9d7c17022f63"),
+        .package(url: "https://github.com/migueldeicaza/SwiftGodot", from: "0.79.0"),
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "12.0.0"),
     ],
     targets: [
