@@ -435,3 +435,8 @@ jobs:
             security list-keychains -d user -s "${existing_keychains[@]}" || true
           fi
           security delete-keychain "$KEYCHAIN_PATH" || true
+
+      - name: Clean up temporary build folders
+        if: always()
+        run: |
+          rm -rf .xcodebuild* .build apple/.build dist *.zip

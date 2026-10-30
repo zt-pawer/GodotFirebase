@@ -1,4 +1,4 @@
-.PHONY: build dist android
+.PHONY: build dist android clean-build clean
 
 CONFIG ?= Release
 HOST_ARCH ?= $(shell uname -m)
@@ -169,3 +169,9 @@ android:
 	cp "android/build/outputs/aar/$(ANDROID_MODULE_NAME)-release.aar" "$$addon/release/"; \
 	cp "android/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/arm64-v8a/lib$(ANDROID_MODULE_NAME).so" "$$addon/debug/arm64-v8a/"; \
 	cp "android/build/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/arm64-v8a/lib$(ANDROID_MODULE_NAME).so" "$$addon/release/arm64-v8a/"
+
+clean-build:
+	rm -rf $(DERIVED_DATA)* .build apple/.build .tmp
+
+clean: clean-build
+	rm -rf $(CURDIR)/addons/$(MODULE_NAMES)/bin dist *.zip
